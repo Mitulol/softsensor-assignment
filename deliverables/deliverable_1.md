@@ -9,8 +9,10 @@ active_zones: array of zone_id -> cross-ref: zones._id
 ```
 
 ### nesting depth: 2. 
+```
 I saw a lot of documentation. Some of them consider an array to be
 at a higher nesting depth. I have assumed the same.
+```
 
 ### Sample:
 ```json
@@ -25,6 +27,7 @@ at a higher nesting depth. I have assumed the same.
 ```
 
 ## vehicles
+```
 _id: string
 type: string
 capacity_packages: integer
@@ -40,11 +43,14 @@ current_assignments[]
     start_date
     details.planned_stops[] -> ref: stops._id
     details.backup_vehicles[] -> ref: vehicles._id
+```
 
 ### nesting depth: 6. 
+```
 maintenance_logs contains an array of objects.
 Each object is at depth 2, details at depth 3, tasks at depth 4, 
 each object in tasks array at 5, and task and cost at 6.
+```
 
 ### Sample:
 
@@ -113,6 +119,7 @@ each object in tasks array at 5, and task and cost at 6.
 ```
 
 ## drivers
+```
 _id: string
 name: string
 license.class / expiry
@@ -122,12 +129,15 @@ certifications[]
 weekly_schedule[]
     day
     shifts[]: start/end times
+```
 
-### nesting depth: 5. 
+### nesting depth: 5.
+``` 
 weekly_schedule at 1, has array of object each at depth 2,
 shifts inside object at depth 3,
 which has array of objects each at depth 4,
 and start inside the object at depth 5.
+```
 
 ### Sample:
 
@@ -170,6 +180,7 @@ and start inside the object at depth 5.
 
 
 ## stops
+```
 _id: string
 package_id: string
 address: string
@@ -179,10 +190,13 @@ events[]
 customer_callbacks[]
     callback_ts
     issues[]: type + detail
+```
 
 ### nesting depth: 6. 
+```
 events at 1, has as array of objects each at 2, attempts at 3,
 has an array of object each at 4, exception at 5, code at 6
+```
 
 ### Sample:
 
@@ -249,15 +263,19 @@ has an array of object each at 4, exception at 5, code at 6
 ```
 
 ## zones
+```
 _id: string
 name: string
 boundaries[][]: array of array of points (polygon rings)
 subzones[]
     id, name
+```
 
 ### nesting depth: 4. 
+```
 boundaries is depth 1, inner array depth 2, object is depth 3 and
 lat and long are depth 4.
+```
 
 ### Sample:
 
@@ -291,15 +309,19 @@ lat and long are depth 4.
 ```
 
 ## inspections
+```
 _id: string
 date
 inspector.id / name
 vehicle_id -> ref: vehicles._id
 checklist[]: item, status, optional notes
 issues_found[]: code + description
+```
 
 ### nesting depth: 3
+```
 checklist at 1, objects inside array at 2, item and status at 3.
+```
 
 ### Sample:
 
