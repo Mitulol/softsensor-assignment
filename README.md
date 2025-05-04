@@ -17,7 +17,9 @@ Includes the design and explanation of the MongoDB schema used to capture deeply
 I originally tried using `abctl` to install Airbyte locally, but the install took over 10 hours on my personal laptop. I then switched to **Airbyte Cloud**, which doesn’t support exporting full connection configs—but I’ve included the **source and destination configs** separately instead.
 
 📄 Markdown: [`deliverables/deliverable_2.md`](./deliverables/deliverable_2.md)  
+
 📄 Config JSON: [`deliverables/deliverable_2.json`](./deliverables/deliverable_2.json)  
+
 📷 Sync Logs: [`deliverables/deliverable_2_sync_log_1.png`](./deliverables/deliverable_2_sync_log_1.png), [`deliverables/deliverable_2_sync_log_2.png`](./deliverables/deliverable_2_sync_log_2.png)
 
 ---
@@ -47,6 +49,7 @@ Includes:
 ## 📁 Deliverable 5 – Cube.dev Semantic Layer
 
 📄 [`deliverables/deliverable_5.js`](./deliverables/deliverable_5.js) (summary version)  
+
 📁 Full implementation lives in [`cube_project/`](./cube_project), where metrics were defined and exposed via Cube.dev’s REST/GraphQL API.
 
 ---
@@ -54,6 +57,7 @@ Includes:
 ## 📁 Deliverable 6 – Semantic Layer Comparison
 
 Comparison of dbt and Cube.dev’s semantic layers across performance, real-time support, governance, and ease of use—based on actual project implementation.
+
 📄 [`deliverables/deliverable_6.md`](./deliverables/deliverable_6.md)  
 
 ---
@@ -61,6 +65,7 @@ Comparison of dbt and Cube.dev’s semantic layers across performance, real-time
 ## 📁 Deliverable 7 – Cube.dev Dashboard Screenshot
 
 Screenshot of the Cube Playground, showing calculated metrics like `deliverySuccessRate`, `completedDeliveries`, and `exceptionCount`.
+
 📷 [`deliverables/deliverable_7.png`](./deliverables/deliverable_7.png)  
 
 
