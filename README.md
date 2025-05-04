@@ -71,3 +71,33 @@ Screenshot of the Cube Playground, showing calculated metrics like `deliverySucc
 
 ---
 
+## 📚 Viewing dbt Documentation
+
+The dbt-generated documentation site is located in:
+
+📁 [`logistics_pipeline/target/`](./logistics_pipeline/target)
+
+To view the documentation locally:
+
+```bash
+# Step into the project folder
+cd logistics_pipeline
+
+# (Optional) Activate your virtual environment
+source .venv/bin/activate
+
+# Serve the documentation site
+dbt docs serve
+```
+
+Once the server starts, open the link (usually http://localhost:8080) in your browser.
+
+This will open an interactive site where you can explore:
+
+- Data models (staging, core, snapshots)
+- Sources and tests
+- Lineage graphs
+- Semantic metrics
+
+
+
