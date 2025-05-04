@@ -9,10 +9,8 @@ active_zones: array of zone_id -> cross-ref: zones._id
 ```
 
 ### nesting depth: 2. 
-```
-I saw a lot of documentation. Some of them consider an array to be
-at a higher nesting depth. I have assumed the same.
-```
+  I saw a lot of documentation. Some of them consider an array to be at a higher nesting depth. I have assumed the same.
+
 
 ### Sample:
 ```json
