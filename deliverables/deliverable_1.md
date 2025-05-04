@@ -1,16 +1,12 @@
 ## logistics_companies
+```
 _id: string (e.g., "company_001")
-
 name: string
-
 region: string
-
 fleet: array of vehicle_id -> cross-ref: vehicles._id
-
 drivers: array of driver_id -> cross-ref: drivers._id
-
 active_zones: array of zone_id -> cross-ref: zones._id
-
+```
 
 ### nesting depth: 2. 
 I saw a lot of documentation. Some of them consider an array to be
