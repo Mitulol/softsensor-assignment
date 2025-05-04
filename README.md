@@ -7,6 +7,7 @@ This repository contains all components and deliverables for the SoftSensor logi
 ## 📁 Deliverable 1 – MongoDB Schema Design
 
 Includes the design and explanation of the MongoDB schema used to capture deeply nested logistics data.
+
 📄 Located in [`deliverables/deliverable_1.md`](./deliverables/deliverable_1.md)  
 
 ---
