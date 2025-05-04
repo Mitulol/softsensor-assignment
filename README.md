@@ -25,6 +25,7 @@ I originally tried using `abctl` to install Airbyte locally, but the install too
 ## 📁 Deliverable 3 – ERD Diagram
 
 Shows the final ERD derived from the ingested MongoDB schema.
+
 📷 [`deliverables/deliverable_3.png`](./deliverables/deliverable_3.png)  
 
 ---
