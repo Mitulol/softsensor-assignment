@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "stop_1",
+    "package_id": "pkg_201",
+    "address": "123 Maple St, Newark, NJ",
+    "events": [
+      {
+        "type": "arrival",
+        "ts": "2025-05-01T08:25:00Z"
+      },
+      {
+        "type": "delivery_attempts",
+        "attempts": [
+          {
+            "ts": "2025-05-01T08:30:00Z",
+            "status": "Exception",
+            "exception": {
+              "code": "NO_ACCESS",
+              "reason": "Gate locked"
+            }
+          },
+          {
+            "ts": "2025-05-01T09:00:00Z",
+            "status": "Delivered"
+          }
+        ]
+      }
+    ],
+    "customer_callbacks": [
+      {
+        "callback_ts": "2025-05-02T12:00:00Z",
+        "issues": [
+          {
+            "type": "missing_item",
+            "detail": "Wrong SKU"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "stop_2",
+    "package_id": "pkg_202",
+    "address": "456 Oak Ave, Newark, NJ",
+    "events": [
+      {
+        "type": "arrival",
+        "ts": "2025-05-01T08:40:00Z"
+      },
+      {
+        "type": "delivery_attempts",
+        "attempts": [
+          {
+            "ts": "2025-05-01T08:45:00Z",
+            "status": "Delivered"
+          }
+        ]
+      }
+    ],
+    "customer_callbacks": []
+  }
+]

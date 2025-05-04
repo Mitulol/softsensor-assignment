@@ -1,0 +1,11 @@
+
+target/*
+dbt_packages/
+logs/
+
+!target/index.html
+!target/manifest.json
+!target/catalog.json
+!target/graph_summary.json
+!target/graph.gpickle
+!target/semantic_manifest.json

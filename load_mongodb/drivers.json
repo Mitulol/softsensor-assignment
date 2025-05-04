@@ -1,0 +1,70 @@
+[
+  {
+    "_id": "drv_5001",
+    "name": "Alice Chen",
+    "license": {
+      "class": "Class C",
+      "expiry": "2026-02-28"
+    },
+    "certifications": [
+      {
+        "type": "Safety",
+        "levels": [
+          "Basic",
+          "Advanced"
+        ]
+      }
+    ],
+    "weekly_schedule": [
+      {
+        "day": "Mon",
+        "shifts": [
+          {
+            "start": "08:00",
+            "end": "16:00"
+          },
+          {
+            "start": "18:00",
+            "end": "22:00"
+          }
+        ]
+      },
+      {
+        "day": "Tue",
+        "shifts": [
+          {
+            "start": "14:00",
+            "end": "22:00"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "drv_5002",
+    "name": "Bob Martinez",
+    "license": {
+      "class": "Class B",
+      "expiry": "2025-11-15"
+    },
+    "certifications": [
+      {
+        "type": "Hazmat",
+        "levels": [
+          "Basic"
+        ]
+      }
+    ],
+    "weekly_schedule": [
+      {
+        "day": "Wed",
+        "shifts": [
+          {
+            "start": "07:00",
+            "end": "15:00"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,34 @@
+[
+  {
+    "_id": "company_001",
+    "name": "Express Logistics Co.",
+    "region": "North-East USA",
+    "fleet": [
+      "veh_1001",
+      "veh_1002"
+    ],
+    "drivers": [
+      "drv_5001",
+      "drv_5002"
+    ],
+    "active_zones": [
+      "zone_A",
+      "zone_B"
+    ]
+  },
+  {
+    "_id": "company_002",
+    "name": "Swift Transport LLC",
+    "region": "Midwest USA",
+    "fleet": [
+      "veh_2001"
+    ],
+    "drivers": [
+      "drv_6001",
+      "drv_6002"
+    ],
+    "active_zones": [
+      "zone_C"
+    ]
+  }
+]

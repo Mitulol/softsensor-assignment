@@ -1,0 +1,48 @@
+[
+  {
+    "_id": "insp_1001",
+    "date": "2025-05-01",
+    "inspector": {
+      "id": "emp_203",
+      "name": "Emily Davis"
+    },
+    "vehicle_id": "veh_1001",
+    "checklist": [
+      {
+        "item": "Brakes",
+        "status": "Pass"
+      },
+      {
+        "item": "Lights",
+        "status": "Fail",
+        "notes": "Left headlight out"
+      }
+    ],
+    "issues_found": [
+      {
+        "code": "BRK01",
+        "description": "Brake pad wear"
+      }
+    ]
+  },
+  {
+    "_id": "insp_1002",
+    "date": "2025-05-02",
+    "inspector": {
+      "id": "emp_204",
+      "name": "Carlos Nguyen"
+    },
+    "vehicle_id": "veh_1002",
+    "checklist": [
+      {
+        "item": "Tires",
+        "status": "Pass"
+      },
+      {
+        "item": "Engine Oil",
+        "status": "Pass"
+      }
+    ],
+    "issues_found": []
+  }
+]

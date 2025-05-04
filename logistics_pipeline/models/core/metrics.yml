@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: fct_route_performance
+    metrics:
+      - name: delivery_success_rate
+        label: "Delivery Success Rate"
+        description: >
+          The percentage of planned stops that were completed with successful deliveries 
+          (irrespective of the number of attempts it took.)
+        type: ratio
+        numerator: completed_deliveries
+        denominator: planned_stop_count
+        timestamp: start_date
+        time_grains: [day, week, month]
+
+      - name: exception_count
+        label: "Exception Count"
+        description: >
+          Total number of delivery exceptions encountered per route.
+        type: simple
+        sql: exception_count
+        timestamp: start_date
+        time_grains: [day, week, month]
+
+  - name: fct_inspection_summary
+    metrics:
+      - name: inspection_pass_rate
+        label: "Inspection Pass Rate"
+        description: >
+          Percentage of inspection checklist items that passed. Calculated as
+          (total_checks - failed_checks) / total_checks.
+        type: expression
+        sql: "(total_checks - failed_checks) * 1.0 / nullif(total_checks, 0)"
+        timestamp: inspection_date
+        time_grains: [day, week, month]
+
+  - name: fct_maintenance_tasks
+    metrics:
+      - name: maintenance_cost_total
+        label: "Total Maintenance Cost"
+        description: >
+          Total cost of vehicle maintenance tasks, summed across time or by vehicle.
+        type: simple
+        sql: total_maintenance_cost
+        timestamp: service_date
+        time_grains: [day, week, month]

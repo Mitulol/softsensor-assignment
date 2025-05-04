@@ -1,0 +1,94 @@
+[
+  {
+    "_id": "veh_1001",
+    "type": "Van",
+    "capacity_packages": 200,
+    "maintenance_logs": [
+      {
+        "service_date": "2025-04-15",
+        "details": {
+          "km_reading": 54321,
+          "tasks": [
+            {
+              "task": "Oil Change",
+              "cost": 120
+            },
+            {
+              "task": "Brake Inspection",
+              "cost": 80
+            }
+          ]
+        }
+      }
+    ],
+    "sensor_streams": [
+      {
+        "stream_type": "gps",
+        "points": [
+          [
+            {
+              "ts": "2025-05-01T08:05:00Z",
+              "lat": 40.7128,
+              "lng": -74.006
+            },
+            {
+              "ts": "2025-05-01T08:15:00Z",
+              "lat": 40.715,
+              "lng": -74.01
+            }
+          ]
+        ]
+      }
+    ],
+    "current_assignments": [
+      {
+        "route_id": "rte_9001",
+        "start_date": "2025-05-01",
+        "details": {
+          "planned_stops": [
+            "stop_1",
+            "stop_2"
+          ],
+          "backup_vehicles": [
+            "veh_1002"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "_id": "veh_1002",
+    "type": "Truck",
+    "capacity_packages": 500,
+    "maintenance_logs": [
+      {
+        "service_date": "2025-03-10",
+        "details": {
+          "km_reading": 12000,
+          "tasks": [
+            {
+              "task": "Tire Rotation",
+              "cost": 60
+            }
+          ]
+        }
+      }
+    ],
+    "sensor_streams": [
+      {
+        "stream_type": "fuel",
+        "readings": [
+          {
+            "ts": "2025-05-01T09:00:00Z",
+            "liters": 4.1
+          },
+          {
+            "ts": "2025-05-01T12:00:00Z",
+            "liters": 3.9
+          }
+        ]
+      }
+    ],
+    "current_assignments": []
+  }
+]

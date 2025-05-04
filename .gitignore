@@ -1,0 +1,6 @@
+.venv/
+cube_project/.env
+cube_project/node_modules
+cube_project/.cubestore
+cube_project/upstream
+logs

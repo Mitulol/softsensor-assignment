@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: softsensor
+    schema: softsensor
+    tables:
+      - name: drivers
+      - name: inspections
+      - name: logistics_companies
+      - name: stops
+      - name: vehicles
+      - name: zones
