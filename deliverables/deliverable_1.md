@@ -1,15 +1,18 @@
 ## logistics_companies
-  _id: string (e.g., "company_001")
-  name: string
-  region: string
-  fleet: array of vehicle_id -> cross-ref: vehicles._id
-  drivers: array of driver_id -> cross-ref: drivers._id
-  active_zones: array of zone_id -> cross-ref: zones._id
-
+```
+_id: string (e.g., "company_001")
+name: string
+region: string
+fleet: array of vehicle_id -> cross-ref: vehicles._id
+drivers: array of driver_id -> cross-ref: drivers._id
+active_zones: array of zone_id -> cross-ref: zones._id
+```
 
 ### nesting depth: 2. 
-  I saw a lot of documentation. Some of them consider an array to be at a higher nesting depth. I have assumed the same.
-
+```
+I saw a lot of documentation. Some of them consider an array to be at a higher nesting depth. 
+I have assumed the same.
+```
 
 ### Sample:
 ```json
@@ -24,22 +27,23 @@
 ```
 
 ## vehicles
-  _id: string
-  type: string
-  capacity_packages: integer
-  maintenance_logs[]
-      service_date: string
-      details.km_reading: int
-      details.tasks[]: task + cost
-  sensor_streams[]
-      stream_type: string
-      points[][] or readings[]: nested arrays of timestamps and measurements
-  current_assignments[]
-      route_id
-      start_date
-      details.planned_stops[] -> ref: stops._id
-      details.backup_vehicles[] -> ref: vehicles._id
-
+```
+_id: string
+type: string
+capacity_packages: integer
+maintenance_logs[]
+    service_date: string
+    details.km_reading: int
+    details.tasks[]: task + cost
+sensor_streams[]
+    stream_type: string
+    points[][] or readings[]: nested arrays of timestamps and measurements
+current_assignments[]
+    route_id
+    start_date
+    details.planned_stops[] -> ref: stops._id
+    details.backup_vehicles[] -> ref: vehicles._id
+```
 
 ### nesting depth: 6. 
 ```
