@@ -6,12 +6,12 @@ client = MongoClient("mongodb+srv://mitgoel:mitul@cluster0.znrp0w5.mongodb.net/?
 db = client["softsensor"]
 
 collections = {
-    "vehicles": "vehicles.json",
-    "logistics_companies": "logistics_companies.json",
-    "drivers": "drivers.json",
-    "stops": "stops.json",
-    "zones": "zones.json",
-    "inspections": "inspections.json"
+    "vehicles": "json_data/vehicles.json",
+    "logistics_companies": "json_data/logistics_companies.json",
+    "drivers": "json_data/drivers.json",
+    "stops": "json_data/stops.json",
+    "zones": "json_data/zones.json",
+    "inspections": "json_data/inspections.json"
 }
 
 for name, file in collections.items():

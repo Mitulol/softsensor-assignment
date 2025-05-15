@@ -15,15 +15,16 @@ STOPS_FILE = "stops.json"
 INSPECTIONS_FILE = "inspections.json"
 DRIVERS_FILE = "drivers.json"
 COMPANIES_FILE = "logistics_companies.json"
+ZONES_FILE = "zones.json"
 
 
 # Output file paths
-VEHICLES_OUTPUT_FILE = "vehicles_simulated.json"
-STOPS_OUTPUT_FILE = "stops_simulated.json"
-INSPECTIONS_OUTPUT_FILE = "inspections_simulated.json"
-ZONES_OUTPUT_FILE = "zones_simulated.json"
-DRIVERS_OUTPUT_FILE = "drivers_simulated.json"
-COMPANIES_OUTPUT_FILE = "logistics_companies_simulated.json"
+VEHICLES_OUTPUT_FILE = "data/vehicles_simulated.jsonl"
+STOPS_OUTPUT_FILE = "data/stops_simulated.jsonl"
+INSPECTIONS_OUTPUT_FILE = "data/inspections_simulated.jsonl"
+ZONES_OUTPUT_FILE = "data/zones_simulated.jsonl"
+DRIVERS_OUTPUT_FILE = "data/drivers_simulated.jsonl"
+COMPANIES_OUTPUT_FILE = "data/logistics_companies_simulated.jsonl"
 
 BASE_LAT = 40.7
 BASE_LNG = -74.0
@@ -47,6 +48,13 @@ REGIONS = [
     "Mountain States", "Great Plains", "Mid-Atlantic", "New England"
 ]
 
+num_zones = 0
+num_companies = 0
+num_vehicles = 0
+num_stops = 0
+num_inspections = 0
+num_drivers = 0
+num_packages = 0
 
 # Load existing JSON data
 def load_json(path):
@@ -59,6 +67,33 @@ def load_json(path):
 def save_json(path, data):
     with open(path, 'w') as f:
         json.dump(data, f, indent=2)
+
+def append_jsonl(path, obj):
+    with open(path, 'a') as f:
+        json.dump(obj, f)
+        f.write('\n')
+
+def convert_jsonl_to_json_streaming(jsonl_path, json_path):
+    with open(jsonl_path, 'r') as infile, open(json_path, 'w') as outfile:
+        outfile.write('[')
+
+        first = True
+        for line in infile:
+            line = line.strip()
+            if not line:
+                continue  # skip empty lines
+
+            if not first:
+                outfile.write(',')
+            else:
+                first = False
+
+            obj = json.loads(line)
+            json.dump(obj, outfile)
+
+        outfile.write(']')
+
+    print(f"✅ Successfully converted {jsonl_path} to {json_path} without memory overflow.")
 
 def get_last_km_reading(vehicle):
     logs = vehicle.get("maintenance_logs", [])
@@ -124,19 +159,20 @@ def generate_fuel_stream(date):
     }
 
 
-def generate_new_vehicle(existing_vehicles):
+def generate_new_vehicle():
     # Extract numeric parts of all vehicle IDs like veh_1001
-    existing_ids = [v["_id"] for v in existing_vehicles if v["_id"].startswith("veh_")]
-    max_id_num = 1000  # default starting point
+    # existing_ids = [v["_id"] for v in existing_vehicles if v["_id"].startswith("veh_")]
+    # max_id_num = 1000  # default starting point
 
-    for vid in existing_ids:
-        try:
-            num = int(vid.split("_")[1])
-            max_id_num = max(max_id_num, num)
-        except:
-            continue
-
-    new_id = f"veh_{max_id_num + 1}"
+    # for vid in existing_ids:
+    #     try:
+    #         num = int(vid.split("_")[1])
+    #         max_id_num = max(max_id_num, num)
+    #     except:
+    #         continue
+    global num_vehicles
+    new_id = f"veh_{num_vehicles + 1}"
+    num_vehicles += 1
 
     vehicle_types = ["Van", "Truck", "Electric Van"]
     return {
@@ -148,26 +184,45 @@ def generate_new_vehicle(existing_vehicles):
         "current_assignments": []
     }
 
+def append_vehicle_to_company(company_file_path, company_id, vehicle_id):
+    temp_path = company_file_path + '.tmp'
+
+    with open(company_file_path, 'r') as infile, open(temp_path, 'w') as outfile:
+        for line in infile:
+            company = json.loads(line)
+
+            if company["_id"] == company_id:
+                company.setdefault("fleet", []).append(vehicle_id)
+
+            json.dump(company, outfile)
+            outfile.write('\n')
+
+    os.replace(temp_path, company_file_path)
+
 # === Main Simulation Function ===
-def simulate_days_vehicles_only(start_date, num_days, num_vehicles=10):
-    vehicles = load_json(VEHICLES_OUTPUT_FILE)
-    companies = load_json(COMPANIES_OUTPUT_FILE)
+def simulate_days_vehicles_only(start_date, num_days, sim_num_vehicles_in=10):
+    # vehicles = load_json(VEHICLES_OUTPUT_FILE)
+    # companies = load_json(COMPANIES_OUTPUT_FILE)
 
     # Generate vehicles first
-    for _ in range(num_vehicles):
-        new_vehicle = generate_new_vehicle(vehicles)
+    for _ in range(sim_num_vehicles_in):
+        global num_vehicles
+        # num_vehicles += 1
+        new_vehicle = generate_new_vehicle()
         if new_vehicle:
-            vehicles.append(new_vehicle)
-            assigned_company = random.choice(companies)
-            assigned_company["fleet"].append(new_vehicle["_id"])
-            print(f"🚚 Added new vehicle {new_vehicle['_id']} ({new_vehicle['type']}) with capacity {new_vehicle['capacity_packages']} to {assigned_company['_id']}")
+            # vehicles.append(new_vehicle)
+            append_jsonl(VEHICLES_OUTPUT_FILE, new_vehicle)
+            assigned_company_id = f"company_{random.choice(range(1, num_companies + 1))}"
+            # assigned_company["fleet"].append(new_vehicle["_id"])
+            append_vehicle_to_company(COMPANIES_OUTPUT_FILE, assigned_company_id, new_vehicle["_id"])
+            print(f"🚚 Added new vehicle {new_vehicle['_id']} ({new_vehicle['type']}) with capacity {new_vehicle['capacity_packages']} to {assigned_company_id}")
 
     for i in range(num_days):
         day = start_date + timedelta(days=i)
         # print(f"Simulating vehicle updates for day: {day.date()}")
         print(f"\n🛠 Simulating vehicle updates for day: {day.strftime('%Y-%m-%d')}")
 
-        assigned_company = random.choice(companies)
+        # assigned_company = random.choice(companies)
 
         # Deprecated: Add new vehicle periodically
         # # Add new vehicle periodically
@@ -178,40 +233,51 @@ def simulate_days_vehicles_only(start_date, num_days, num_vehicles=10):
         #     print(f"🚚 Added new vehicle {new_vehicle['_id']} ({new_vehicle['type']}) with capacity {new_vehicle['capacity_packages']} to {assigned_company['_id']}")
         #     # print(f"🚚 Added new vehicle {new_vehicle['_id']} to {assigned_company['_id']}")
 
-        for vehicle in vehicles:
-            print(f"  - Updating vehicle {vehicle['_id']}")
+        temp_path = VEHICLES_OUTPUT_FILE + '.tmp'
 
-            # Add maintenance log if needed
-            maintenance = generate_maintenance_log_if_needed(day, vehicle)
-            if maintenance:
-                vehicle.setdefault("maintenance_logs", []).append(maintenance)
-                print(f"    ➤ Added maintenance log with {len(maintenance['details']['tasks'])} tasks")
+        with open(VEHICLES_OUTPUT_FILE, 'r') as infile, open(temp_path, 'w') as outfile:
+            for line in infile:
+                vehicle = json.loads(line)
+                print(f"  - Updating vehicle {vehicle['_id']}")
+
+                # Add maintenance log if needed
+                maintenance = generate_maintenance_log_if_needed(day, vehicle)
+                if maintenance:
+                    vehicle.setdefault("maintenance_logs", []).append(maintenance)
+                    print(f"    ➤ Added maintenance log with {len(maintenance['details']['tasks'])} tasks")
 
             # Add daily fuel sensor stream
             # vehicle.setdefault("sensor_streams", []).append(generate_gps_stream(day))
             # vehicle.setdefault("sensor_streams", []).append(generate_fuel_stream(day))
 
             # Append GPS points to existing gps stream
-            gps_stream = next((s for s in vehicle.setdefault("sensor_streams", []) if s["stream_type"] == "gps"), None)
-            if not gps_stream:
-                gps_stream = {"stream_type": "gps", "points": []}
-                vehicle["sensor_streams"].append(gps_stream)
-            gps_stream["points"].append(generate_gps_stream(day)["points"][0])
-            print(f"    ➤ Added GPS points")
+                gps_stream = next((s for s in vehicle.setdefault("sensor_streams", []) if s["stream_type"] == "gps"), None)
+                if not gps_stream:
+                    gps_stream = {"stream_type": "gps", "points": []}
+                    vehicle["sensor_streams"].append(gps_stream)
+                gps_stream["points"].append(generate_gps_stream(day)["points"][0])
+                print(f"    ➤ Added GPS points")
 
-            # Append fuel readings to existing fuel stream
-            fuel_stream = next((s for s in vehicle["sensor_streams"] if s["stream_type"] == "fuel"), None)
-            if not fuel_stream:
-                fuel_stream = {"stream_type": "fuel", "readings": []}
-                vehicle["sensor_streams"].append(fuel_stream)
-            fuel_data = generate_fuel_stream(day)["readings"]
-            fuel_stream["readings"].extend(fuel_data)
-            print(f"    ➤ Added fuel readings: {len(fuel_data)}")
+                # Append fuel readings to existing fuel stream
+                fuel_stream = next((s for s in vehicle["sensor_streams"] if s["stream_type"] == "fuel"), None)
+                if not fuel_stream:
+                    fuel_stream = {"stream_type": "fuel", "readings": []}
+                    vehicle["sensor_streams"].append(fuel_stream)
+                fuel_data = generate_fuel_stream(day)["readings"]
+                fuel_stream["readings"].extend(fuel_data)
+                print(f"    ➤ Added fuel readings: {len(fuel_data)}")
+
+                # Write back the updated vehicle to temp file
+                json.dump(vehicle, outfile)
+                outfile.write('\n')
+        
+        os.replace(temp_path, VEHICLES_OUTPUT_FILE)
+        print(f"\n💾 Saved updated vehicles for {day.strftime('%Y-%m-%d')} to {VEHICLES_OUTPUT_FILE}")
 
 
-    save_json(VEHICLES_OUTPUT_FILE, vehicles)
+    # save_json(VEHICLES_OUTPUT_FILE, vehicles)
     print(f"\n💾 Saved updated vehicles to {VEHICLES_OUTPUT_FILE}")
-    save_json(COMPANIES_OUTPUT_FILE, companies)
+    # save_json(COMPANIES_OUTPUT_FILE, companies)
     print(f"💾 Updated companies with new fleet data in {COMPANIES_OUTPUT_FILE}")
 
 def get_next_stop_index(existing_stops):
@@ -231,7 +297,9 @@ def get_next_stop_index(existing_stops):
 
 def generate_stop_entry(stop_id, date):
     # stop_id = f"stop_sim_{date.strftime('%Y%m%d')}_{index}"
-    pkg_id = f"pkg_{random.randint(300, 999)}"
+    global num_packages
+    num_packages += 1
+    pkg_id = f"pkg_{num_packages}"
     address = f"{random.randint(100, 999)} Simulated Blvd, Newark, NJ"
 
     # Randomly decide how many failed attempts (0 to 2)
@@ -325,7 +393,7 @@ def generate_inspection_entry(date, insp_id, vehicle_id):
         "_id": insp_id,
         "date": date.strftime("%Y-%m-%d"),
         "inspector": inspector,
-        "vehicle_id": vehicle_id,
+        "vehicle_id": f"veh_{vehicle_id}",
         "checklist": checklist,
         "issues_found": issues
     }
@@ -402,64 +470,80 @@ def generate_inspection_entry(date, insp_id, vehicle_id):
 #     print(f"💾 Saved vehicle assignments to {VEHICLES_OUTPUT_FILE}")
 
 def simulate_stops(start_date, num_days, stops_per_day_per_vehicle):
-    stops = load_json(STOPS_OUTPUT_FILE)
-    vehicles = load_json(VEHICLES_OUTPUT_FILE)
-    stop_index = get_next_stop_index(stops)
+    # stops = load_json(STOPS_OUTPUT_FILE)
+    # vehicles = load_json(VEHICLES_OUTPUT_FILE)
+    # stop_index = get_next_stop_index(stops)
 
     for i in range(num_days):
         day = start_date + timedelta(days=i)
         print(f"\n📦 Simulating stops for day: {day.strftime('%Y-%m-%d')}")
 
-        for vehicle in vehicles:
-            for _ in range(stops_per_day_per_vehicle):
-                stop_id = f"stop_{stop_index}"
-                stop = generate_stop_entry(stop_id, day)
-                stops.append(stop)
-                print(f"  ➤ Created stop {stop_id} at {stop['address']}")
+        # for vehicle in vehicles:
+        temp_vehicles_path = VEHICLES_OUTPUT_FILE + '.tmp'
+        with open(VEHICLES_OUTPUT_FILE, 'r') as vehicles_infile, open(temp_vehicles_path, 'w') as vehicles_outfile:
+            for line in vehicles_infile:
+                vehicle = json.loads(line)
 
-                assignment = next(
-                    (a for a in vehicle.get("current_assignments", [])
-                     if a["start_date"] == day.strftime("%Y-%m-%d")),
-                    None
-                )
+                for _ in range(stops_per_day_per_vehicle):
+                    global num_stops
+                    num_stops += 1
+                    stop_id = f"stop_{num_stops}"
+                    new_stop = generate_stop_entry(stop_id, day)
+                    # stops.append(stop)
+                    append_jsonl(STOPS_OUTPUT_FILE, new_stop)
+                    print(f"  ➤ Created stop {stop_id} at {new_stop['address']}")
 
-                if not assignment:
-                    assignment = {
-                        "route_id": f"rte_sim_{day.strftime('%Y%m%d')}",
-                        "start_date": day.strftime("%Y-%m-%d"),
-                        "details": {
-                            "planned_stops": [],
-                            "backup_vehicles": []
+                    assignment = next(
+                        (a for a in vehicle.get("current_assignments", [])
+                        if a["start_date"] == day.strftime("%Y-%m-%d")),
+                        None
+                    )
+
+                    if not assignment:
+                        assignment = {
+                            "route_id": f"rte_sim_{day.strftime('%Y%m%d')}",
+                            "start_date": day.strftime("%Y-%m-%d"),
+                            "details": {
+                                "planned_stops": [],
+                                "backup_vehicles": []
+                            }
                         }
-                    }
-                    vehicle.setdefault("current_assignments", []).append(assignment)
-                    print(f"    ➕ Created new route {assignment['route_id']} for vehicle {vehicle['_id']}")
+                        vehicle.setdefault("current_assignments", []).append(assignment)
+                        print(f"    ➕ Created new route {assignment['route_id']} for vehicle {vehicle['_id']}")
 
-                assignment["details"]["planned_stops"].append(stop_id)
-                print(f"    🔗 Assigned stop {stop_id} to vehicle {vehicle['_id']} on route {assignment['route_id']}")
-                stop_index += 1
+                    assignment["details"]["planned_stops"].append(stop_id)
+                    print(f"    🔗 Assigned stop {stop_id} to vehicle {vehicle['_id']} on route {assignment['route_id']}")
 
-    save_json(STOPS_OUTPUT_FILE, stops)
-    save_json(VEHICLES_OUTPUT_FILE, vehicles)
+                json.dump(vehicle, vehicles_outfile)
+                vehicles_outfile.write('\n')
+        
+        os.replace(temp_vehicles_path, VEHICLES_OUTPUT_FILE)
+
+    # save_json(STOPS_OUTPUT_FILE, stops)
+    # save_json(VEHICLES_OUTPUT_FILE, vehicles)
+    print(f"\n💾 Finished simulating stops across {num_days} days")
     print(f"\n💾 Saved stops to {STOPS_OUTPUT_FILE}")
     print(f"💾 Updated vehicle assignments in {VEHICLES_OUTPUT_FILE}")
 
 def simulate_inspections(start_date, num_days):
-    inspections = load_json(INSPECTIONS_OUTPUT_FILE)
-    vehicles = load_json(VEHICLES_OUTPUT_FILE)
-    insp_index = get_next_insp_index(inspections)
+    # inspections = load_json(INSPECTIONS_OUTPUT_FILE)
+    # vehicles = load_json(VEHICLES_OUTPUT_FILE)
+    # insp_index = get_next_insp_index(inspections)
 
     for i in range(num_days):
         day = start_date + timedelta(days=i)
         print(f"\n🧪 Simulating inspections for day: {day.strftime('%Y-%m-%d')}")
 
-        for vehicle in vehicles:
-            insp_id = f"insp_{insp_index}"
-            inspections.append(generate_inspection_entry(day, insp_id, vehicle["_id"]))
-            print(f"  🧪 Generated inspection {insp_id} for vehicle {vehicle['_id']}")
-            insp_index += 1
+        for vehicle_id in range(1, num_vehicles + 1):
+            global num_inspections
+            num_inspections += 1
+            insp_id = f"insp_{num_inspections}"
+            # inspections.append(generate_inspection_entry(day, insp_id, vehicle["_id"]))
+            new_inspection = generate_inspection_entry(day, insp_id, vehicle_id)
+            append_jsonl(INSPECTIONS_OUTPUT_FILE, new_inspection)
+            print(f"  🧪 Generated inspection {insp_id} for vehicle " f"veh_{vehicle_id}")
 
-    save_json(INSPECTIONS_OUTPUT_FILE, inspections)
+    # save_json(INSPECTIONS_OUTPUT_FILE, inspections)
     print(f"💾 Saved inspections to {INSPECTIONS_OUTPUT_FILE}")
 
 
@@ -508,28 +592,30 @@ def generate_zone(zone_index):
     }
 
 def generate_zones(zones_per_run, num_runs=1):
-    zones = load_json(ZONES_OUTPUT_FILE)
+    # zones = load_json(ZONES_OUTPUT_FILE)
     # companies = load_json(COMPANIES_OUTPUT_FILE)
-    next_index = get_next_zone_index(zones)
+    # next_index = get_next_zone_index(zones)
 
     print(f"\n🌐 Generating {zones_per_run * num_runs} zones across {num_runs} run(s)...")
 
     for run in range(num_runs):
         print(f"  ▶ Run {run + 1}/{num_runs}")
         for i in range(zones_per_run):
-            zone = generate_zone(next_index)
-            zones.append(zone)
+            global num_zones
+            num_zones += 1
+            new_zone = generate_zone(num_zones)
+            append_jsonl(ZONES_OUTPUT_FILE, new_zone)
 
             # deprecated: Assign to a random company
             # assigned_company = random.choice(companies)
             # assigned_company["active_zones"].append(zone["_id"])
 
-            print(f"    ➤ Created {zone['_id']}")
+            print(f"    ➤ Created {new_zone['_id']}")
 
-            next_index += 1
+            
 
-    save_json(ZONES_OUTPUT_FILE, zones)
-    print(f"✅ Zones written to {ZONES_OUTPUT_FILE} (Total: {len(zones)})")
+    # save_json(ZONES_OUTPUT_FILE, zones)
+    print(f"✅ Zones written to {ZONES_OUTPUT_FILE} (Total: {num_zones})")
 
 def get_next_driver_index(existing_drivers):
     nums = []
@@ -599,10 +685,25 @@ def generate_driver(driver_id):
         "weekly_schedule": generate_weekly_schedule()
     }
 
+def append_driver_to_company(company_file_path, company_id, driver_id):
+    temp_path = company_file_path + '.tmp'
+
+    with open(company_file_path, 'r') as infile, open(temp_path, 'w') as outfile:
+        for line in infile:
+            company = json.loads(line)
+
+            if company["_id"] == company_id:
+                company.setdefault("drivers", []).append(driver_id)
+
+            json.dump(company, outfile)
+            outfile.write('\n')
+
+    os.replace(temp_path, company_file_path)
+
 def generate_drivers(drivers_per_run, num_runs=1):
-    drivers = load_json(DRIVERS_OUTPUT_FILE)
-    next_index = get_next_driver_index(drivers)
-    companies = load_json(COMPANIES_OUTPUT_FILE)
+    # drivers = load_json(DRIVERS_OUTPUT_FILE)
+    # next_index = get_next_driver_index(drivers)
+    # companies = load_json(COMPANIES_OUTPUT_FILE)
 
 
     print(f"\n🧍 Generating {drivers_per_run * num_runs} drivers across {num_runs} run(s)...")
@@ -610,19 +711,23 @@ def generate_drivers(drivers_per_run, num_runs=1):
     for run in range(num_runs):
         print(f"  ▶ Run {run + 1}/{num_runs}")
         for _ in range(drivers_per_run):
-            driver_id = f"drv_{next_index}"
-            driver = generate_driver(driver_id)
-            drivers.append(driver)
+            global num_drivers
+            num_drivers += 1
+            driver_id = f"drv_{num_drivers}"
+            new_driver = generate_driver(driver_id)
+            # drivers.append(driver)
+            append_jsonl(DRIVERS_OUTPUT_FILE, new_driver)
 
-            assigned_company = random.choice(companies)
-            assigned_company["drivers"].append(driver_id)
-            print(f"    ➤ Assigned {driver_id} to {assigned_company['_id']}")
 
-            next_index += 1
+            assigned_company_id = f"company_{random.choice(range(1, num_companies + 1))}"
+            # assigned_company["drivers"].append(driver_id)
+            append_driver_to_company(COMPANIES_OUTPUT_FILE, assigned_company_id, driver_id)
+            print(f"    ➤ Assigned {driver_id} to {assigned_company_id}")
 
-    save_json(DRIVERS_OUTPUT_FILE, drivers)
-    save_json(COMPANIES_OUTPUT_FILE, companies)
-    print(f"✅ Drivers written to {DRIVERS_OUTPUT_FILE} (Total: {len(drivers)})")
+
+    # save_json(DRIVERS_OUTPUT_FILE, drivers)
+    # save_json(COMPANIES_OUTPUT_FILE, companies)
+    print(f"✅ Drivers written to {DRIVERS_OUTPUT_FILE} (Total: {num_drivers})")
 
 def get_next_company_index(existing):
     ids = []
@@ -639,8 +744,9 @@ def generate_company(company_id_num, available_zones):
     name = f"Company {company_id_num}"
     region = REGIONS[(company_id_num - 1) % len(REGIONS)]
 
-    num_zones = random.randint(1, min(5, len(available_zones)))
-    assigned_zone_ids = [z["_id"] for z in random.sample(available_zones, k=num_zones)]
+    num_assigned_zones = random.randint(1, min(5, available_zones))
+    # assigned_zone_ids = [z["_id"] for z in random.sample(available_zones, k=num_assigned_zones)]
+    assigned_zone_ids = [f"zone_{z:05}" for z in random.sample(range(1, num_zones + 1), k=num_assigned_zones)]
 
 
     return {
@@ -653,21 +759,24 @@ def generate_company(company_id_num, available_zones):
     }
 
 def generate_companies(num_new):
-    companies = load_json(COMPANIES_OUTPUT_FILE)
-    zones = load_json(ZONES_OUTPUT_FILE)
-    next_index = get_next_company_index(companies)
+    # companies = load_json(COMPANIES_OUTPUT_FILE)
+    # zones = load_json(ZONES_OUTPUT_FILE)
+    # next_index = get_next_company_index(companies)
 
     print(f"🏢 Adding {num_new} new logistics companies...")
 
     for i in range(num_new):
-        company = generate_company(next_index, zones)
-        companies.append(company)
+        global num_companies
+        num_companies += 1
+        new_company = generate_company(num_companies, num_zones)
+        # companies.append(company)
+        append_jsonl(COMPANIES_OUTPUT_FILE, new_company)
         # print(f"  ➤ Created {company['_id']}: {company['name']} in {company['region']}")
-        print(f"  ➤ Created {company['_id']}: {company['name']} in {company['region']}, Zones: {company['active_zones']}")
-        next_index += 1
+        print(f"  ➤ Created {new_company['_id']}: {new_company['name']} in {new_company['region']}, Zones: {new_company['active_zones']}")
+        
 
-    save_json(COMPANIES_OUTPUT_FILE, companies)
-    print(f"✅ Saved updated company list to {COMPANIES_OUTPUT_FILE} (Total: {len(companies)})")
+    # save_json(COMPANIES_OUTPUT_FILE, companies)
+    print(f"✅ Saved updated company list to {COMPANIES_OUTPUT_FILE} (Total: {num_companies})")
 
 
 
@@ -701,7 +810,7 @@ if __name__ == "__main__":
             DRIVERS_OUTPUT_FILE,
             COMPANIES_OUTPUT_FILE
         ]:
-            open(path, 'w').write("[]")  # Empty valid JSON array
+            open(path, 'w').close()  # Empty valid JSON array
     else:
         print("➕ Appending to existing output files.")
 
@@ -710,17 +819,24 @@ if __name__ == "__main__":
     scaling_factor = args.scale
     num_days = args.days
 
-    num_companies = 100
-    num_vehicles = 500
-    num_stops_per_day_per_vehicle = 5
-    num_inspections_per_day_per_vehicle = 1
-    num_zones = 80
-    num_drivers = 600
+    sim_num_companies = 100
+    sim_num_vehicles = 500
+    sim_num_stops_per_day_per_vehicle = 5
+    sim_num_inspections_per_day_per_vehicle = 1
+    sim_num_zones = 80
+    sim_num_drivers = 600
 
-    generate_zones(scaling_factor * num_zones)
-    generate_companies(scaling_factor * num_companies)
-    simulate_days_vehicles_only(today, num_days, scaling_factor * num_vehicles)
-    simulate_stops(today, num_days, num_stops_per_day_per_vehicle)
+    generate_zones(scaling_factor * sim_num_zones)
+    generate_companies(scaling_factor * sim_num_companies)
+    simulate_days_vehicles_only(today, num_days, scaling_factor * sim_num_vehicles)
+    simulate_stops(today, num_days, sim_num_stops_per_day_per_vehicle)
     simulate_inspections(today, num_days)
-    generate_drivers(scaling_factor * num_drivers)
-    
+    generate_drivers(scaling_factor * sim_num_drivers)
+
+    convert_jsonl_to_json_streaming(VEHICLES_OUTPUT_FILE, VEHICLES_FILE)
+    convert_jsonl_to_json_streaming(STOPS_OUTPUT_FILE, STOPS_FILE)
+    convert_jsonl_to_json_streaming(INSPECTIONS_OUTPUT_FILE, INSPECTIONS_FILE)
+    convert_jsonl_to_json_streaming(ZONES_OUTPUT_FILE, ZONES_FILE)
+    convert_jsonl_to_json_streaming(DRIVERS_OUTPUT_FILE, DRIVERS_FILE)
+    convert_jsonl_to_json_streaming(COMPANIES_OUTPUT_FILE, COMPANIES_FILE)
+    print("✅ All data generation and conversion completed successfully.")
